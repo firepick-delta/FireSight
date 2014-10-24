@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/firepick-delta/FireSight.svg?branch=dev)](https://travis-ci.org/firepick-delta/FireSight)
+
 FireSight
 =========
 
