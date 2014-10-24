@@ -134,6 +134,7 @@ typedef struct GridMatcher {
 		this->tolerance = tolerance;
         this->imgSize = imgSize;
         this->objSep = objSep;
+        this->imgRect = Rect(imgSize.width/2, imgSize.height/2, 0, 0);
     }
 
 	string identifyRows(json_t *pStageModel, vector<Point2f> &pointsXY, float &dyMedian, Point2f &dyTot1,
@@ -294,7 +295,6 @@ typedef struct GridMatcher {
 
     void init() {
         this->imgSep = Point2f(grid.x*objSep.x, grid.y*objSep.y);
-        this->imgRect = Rect(imgSize.width/2, imgSize.height/2, 0, 0);
     }
 
     bool add(Point2f &ptImg, Point3f &ptObj) {
