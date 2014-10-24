@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ "$LGPL2_1" == "" ]; then
-  LGPL2_1=OFF
+  LGPL2_1=ON
 fi
 
 echo "COMMAND	: ../FireSight/build"
