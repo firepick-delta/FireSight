@@ -37,11 +37,16 @@ IF(WIN32)
 			MESSAGE(STATUS "Using OpenCV 32-bit libraries")
 		endif( CMAKE_SIZEOF_VOID_P EQUAL 8)
 		
-		# MINGW
-		#if(MINGW)
-		#	SET(OPENCV2_LIB_PATH ${BUILD_DIR}/mingw/lib/ CACHE PATH "OpenCV library path")
-		#	file(GLOB OPENCV2_LIBS "${OPENCV2_LIB_PATH}/*[0-9][0-9][0-9].dll.a")
-		#endif(MINGW)
+		# MINGW 
+		# NOTE: OpenCV does not offer pre-compiled binaries for MinGW any more, but it can be built using CMAKE and MinGW.
+		if(MINGW)
+			UNSET(OPENCV2_LIB_PATH CACHE)
+			SET(OPENCV2_LIB_PATH ${BUILD_DIR}/mingw/lib/ CACHE PATH "OpenCV library path")
+			file(GLOB OPENCV2_LIBS "${OPENCV2_LIB_PATH}/*[0-9][0-9][0-9].dll.a")
+			UNSET(OpenCV_LIBS CACHE)
+			MESSAGE(STATUS "MinGW libraries OPENCV2_LIB_PATH:${OPENCV2_LIB_PATH}")
+			SET(OpenCV_LIBS "${OPENCV2_LIBS}" CACHE STRING "OpenCV library files")
+		endif(MINGW)
 		
 		# Visual Studio 10
 		if(MSVC10)
