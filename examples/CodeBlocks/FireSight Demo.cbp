@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="FireSight Demo" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/FireSight Demo" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/FireSight Demo" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="C:/OpenCV/build/include" />
+			<Add directory="../../../FireSight" />
+			<Add directory="../../jansson/mingw/include" />
+		</Compiler>
+		<Linker>
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_calib3d2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_contrib2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_core2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_features2d2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_flann2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_gpu2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_highgui2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_imgproc2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_legacy2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_ml2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_nonfree2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_objdetect2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_ocl2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_photo2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_stitching2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_superres2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_ts2410.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_video2410.dll.a" />
+			<Add library="C:\OpenCV\build\x86\mingw\lib\libopencv_videostab2410.dll.a" />
+			<Add library="..\..\target\lib_firesight.dll.a" />
+			<Add library="..\..\target\libjansson.dll.a" />
+			<Add library="..\..\target\libzbar.dll.a" />
+			<Add directory="C:/OpenCV/build/x86/mingw/lib" />
+			<Add directory="../../target" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
