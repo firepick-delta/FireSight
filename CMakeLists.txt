@@ -132,7 +132,7 @@ MESSAGE(STATUS "FireSight Lib Files:${FIRESIGHT_LIB_FILES}")
 
 
 ###############################################################################
-# _FireSight Library
+# lib_firesight Library
 ###############################################################################
 add_library(_firesight SHARED ${FIRESIGHT_LIB_FILES})
 target_link_libraries(_firesight ${JANSSON_LIB} ${OpenCV_LIBS} )
@@ -141,7 +141,7 @@ set_target_properties(_firesight PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
     )
 if(BUILD_LGPL2_1)
-    target_link_libraries(_firesight ${ZBAR_LIB})
+    target_link_libraries(_firesight ${ZBAR_LIBRARIES})
     set_target_properties(_firesight PROPERTIES COMPILE_FLAGS -DLGPL2_1)
 endif(BUILD_LGPL2_1)
 if(WIN32)
