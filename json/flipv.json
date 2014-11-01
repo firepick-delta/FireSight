@@ -1,0 +1,16 @@
+[
+  {"op":"warpAffine", 
+	"name":"flip-vertical",
+  	"angle":"{{angle}}",
+	"scale":"{{scale}}",
+	"width":"{{width}}",
+	"height":"{{height}}",
+	"cx":"{{cx}}",
+	"cy":"{{cy}}",
+	"dx":"{{dx}}",
+	"dy":"{{dy}}",
+	"reflect":"[1,0]",
+	"borderValue":"{{borderValue}}"
+	}
+]
+
