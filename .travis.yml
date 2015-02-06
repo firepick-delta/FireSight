@@ -53,7 +53,7 @@ script:
   # Build FireSight
   ###############################################################################
   # should be in firesight/target dir
-  - cmake .. -DCMAKE_TOOLCHAIN_FILE=../mingw-w64.cmake -DBUILD_LGPL2_1=0
+  - cmake .. -DCMAKE_TOOLCHAIN_FILE=../mingw-w64.cmake -DCMAKE_VERBOSE_MAKEFILE
   - ls
   - make
   - make install
