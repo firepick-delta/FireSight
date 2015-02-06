@@ -43,6 +43,7 @@ script:
   - cd opencv
   - wget https://github.com/firepick-delta/opencv/releases/download/mingw-w64/opencv.zip
   - unzip opencv.zip
+  - ls
   # need to move files around to get them in the proper spot for firesight to build...
   - cp -r include/* ../include
   - cp -r x64/mingw/bin/* ../bin
