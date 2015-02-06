@@ -25,7 +25,7 @@ add_definitions( -shared)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install CACHE PATH "install path")
 
 #List of root paths to search on the filesystem. CMake uses the paths in this list as alternative roots to find filesystem items with find_package(), find_library() etc.
-SET(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32 )
+SET(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32 ${CMAKE_SOURCE_DIR}/target )
 
 # adjust the default behaviour of the FIND_XXX() commands:
 # search headers and libraries in the target environment, search 
