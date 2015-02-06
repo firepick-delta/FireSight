@@ -14,6 +14,9 @@ install:
 script:
   - mkdir target
   - cd target
+  - mkdir include
+  - mkdir lib
+  - mkdir bin
 
   ###############################################################################
   # Dependency: Jansson
