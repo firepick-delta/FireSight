@@ -43,18 +43,22 @@ script:
   - cd opencv
   - wget https://github.com/firepick-delta/opencv/releases/download/mingw-w64/opencv.zip
   - unzip opencv.zip
+  - pwd
   - ls
   # need to move files around to get them in the proper spot for firesight to build...
   - cp -r include/* ../include
   - cp -r x64/mingw/bin/* ../bin
   - cp -r x64/mingw/lib/* ../lib
   - cd ..
+  - cd include
+  - ls
+  - pwd
+  - cd ..
 
   ###############################################################################a
   # Build FireSight
   ###############################################################################
   # should be in firesight/target dir
-  - pwd
   - cmake .. -DCMAKE_TOOLCHAIN_FILE=../mingw-w64.cmake
   - make
   - make install
