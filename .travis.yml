@@ -54,6 +54,7 @@ script:
   ###############################################################################
   # should be in firesight/target dir
   - cmake .. -DCMAKE_TOOLCHAIN_FILE="../mingw-w64.cmake" -DCMAKE_VERBOSE_MAKEFILE:BOOL="1"
+  - cat CMakeCache.txt
   - ls
   - make
   - make install
