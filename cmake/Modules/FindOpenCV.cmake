@@ -33,7 +33,13 @@ endif(WIN32)
 FIND_LIBRARY (OPENCV_CORE_LIB opencv_core${CVLIB_SUFFIX} PATH_SUFFIXES "bin")
 MESSAGE(STATUS "Found OpenCV version: ${OpenCV_VERSION}" )
 
-get_filename_component(OPENCV_DIRPATH ${OPENCV_CORE_LIB} DIRECTORY)
+# NJ 2/6/2015 =================================================================
+# See: http://www.cmake.org/cmake/help/v3.0/command/get_filename_component.html
+# DIRECTORY syntax was added in CMake 2.8.12. PATH existed previously and can be used as a replacement alias for compatibility with 2.8.11 and earlier.
+# Note that major Linux distros (e.g. Debian stable, RHEL6) in widespread production use still have cmake versions < 2.8.12, so it's probably better to use PATH to maintain compatibility vs. requiring a very new version of cmake.
+# =============================================================================
+# get_filename_component(OPENCV_DIRPATH ${OPENCV_CORE_LIB} DIRECTORY)
+get_filename_component(OPENCV_DIRPATH ${OPENCV_CORE_LIB} PATH)
 
 IF (CMAKE_SHARED_LIBRARY_PREFIX)
 	file(GLOB OpenCV_LIBS "${OPENCV_DIRPATH}/${CMAKE_SHARED_LIBRARY_PREFIX}opencv*${CMAKE_SHARED_LIBRARY_SUFFIX}")
