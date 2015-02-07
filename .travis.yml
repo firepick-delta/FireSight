@@ -73,6 +73,7 @@ before_deploy:
   # TODO: this is an ugly hack that should be fixed when time allows.
   - mv lib/lib_firesight.dll bin/lib_firesight.dll
   - zip ../firesight.zip -r .
+  - cd ..
 deploy:
   provider: releases
   skip_cleanup: true
