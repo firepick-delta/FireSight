@@ -71,13 +71,12 @@ before_deploy:
   - cp ../winjunk/libgcc_s_sjlj-1.dll ./bin
   # for some reason, the lib_firesight.dll is getting copied into /lib instead of /bin.. 
   # TODO: this is an ugly hack that should be fixed when time allows.
-  - cp lib/lib_firesight.dll bin/lib_firesight.dll
+  - mv lib/lib_firesight.dll bin/lib_firesight.dll
   - zip firesight.zip -r .
 deploy:
   provider: releases
-  skip_cleanup: true
   api_key:
-    secure: h0aZSLt2vyiX014QKt6b4A02GTBl6F8ZZB50njk0UMJbbqSkJjNX6NYXIg3BHsjU7lD9TMIeNP5ZUuDe5GrX1bnyvf/kstC+1xJ7B2xQPTAgh52vG8q37ozNPR26rlJIqf1g7ZFdtQERYpm5ZuDfKA9KKXMtyl14sldd8I+VzMg=
+    secure: fzrH2xXzBfBlC/lalSV/VAqubCTbsSh6lmmERUMio1yzSxrIvmUTw3k+uAt7NXY5hvnoALbGrnAgKYmYikGqsc+3TSKF/EXiVGexltY3iYQgTip39j1CPlcikt3AmhyJ/u8Ll9ovoSkbCjP3V6j1dFcYDIE5nCHirgvQtO1KvLg=
   file: firesight.zip
   on:
     tags: true
