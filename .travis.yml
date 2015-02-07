@@ -83,4 +83,4 @@ deploy:
   on:
     tags: true
     repo: firepick-delta/FireSight
-    branch: dev-mingw
+    all_branches: true
