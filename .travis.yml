@@ -79,8 +79,8 @@ deploy:
   skip_cleanup: true
   api_key:
     secure: h0aZSLt2vyiX014QKt6b4A02GTBl6F8ZZB50njk0UMJbbqSkJjNX6NYXIg3BHsjU7lD9TMIeNP5ZUuDe5GrX1bnyvf/kstC+1xJ7B2xQPTAgh52vG8q37ozNPR26rlJIqf1g7ZFdtQERYpm5ZuDfKA9KKXMtyl14sldd8I+VzMg=
-  file: opencv.zip
+  file: firesight.zip
   on:
     tags: true
-    repo: firepick-delta/opencv
+    repo: firepick-delta/firesight
     branch: mingw-w64
