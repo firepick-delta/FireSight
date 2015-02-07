@@ -82,5 +82,5 @@ deploy:
   file: firesight.zip
   on:
     tags: true
-    repo: firepick-delta/firesight
-    branch: mingw-w64
+    repo: firepick-delta/FireSight
+    branch: dev-mingw
