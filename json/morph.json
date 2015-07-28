@@ -1,7 +1,7 @@
 [
   {"op":"morph",
-    "ksize":"{{ksize}}",
-    "mop":"{{mop}}",
-    "iterations":"{{iterations}}",
-    "shape":"{{shape}}"}
+  "ksize":"{{ksize}}",
+  "mop":"{{mop}}",
+  "iterations":"{{iterations}}",
+  "shape":"{{shape}}"}
 ]

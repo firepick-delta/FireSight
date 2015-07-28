@@ -5,6 +5,7 @@
 #include <math.h>
 #include "FireLog.h"
 #include "FireSight.hpp"
+#include "Pipeline.h"
 #include "version.h"
 #include "jo_util.hpp"
 #include "opencv2/features2d/features2d.hpp"
@@ -16,11 +17,19 @@ using namespace cv;
 using namespace std;
 using namespace firesight;
 
+#ifdef _MSC_VER
+#include "winjunk.hpp"
+#else
+#define CLASS_DECLSPEC
+#endif
+#include "jansson.h"
+#include "Pipeline.h"
+
 typedef enum{UI_STILL, UI_VIDEO} UIMode;
 
 static void help() {
   cout << "FireSight image processing pipeline v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << endl;
-  cout << "Copyright 2014, Karl Lew, Simon Fojtu" << endl;
+  cout << "Copyright 2014,2015 Karl Lew, Simon Fojtu" << endl;
   cout << "https://github.com/firepick1/FireSight/wiki" << endl;
   cout << "OpenCV " CV_VERSION << " (" << FIRESIGHT_PLATFORM_BITS << "-bit)" << endl;
   cout << endl;
@@ -42,6 +51,8 @@ static void help() {
   cout << "    Define pipeline parameter value" << endl;
   cout << " -ji JSON-model-indent" << endl;
   cout << "    Specify 0 for compact JSON output of model" << endl;
+  cout << " -jp JSON-model-real-precision" << endl;
+  cout << "    Default is 6-digit precision for real numbers in JSON model output" << endl;
   cout << " -o output-image-file" << endl;
   cout << "    File for saving pipeline image " << endl;
   cout << " -p JSON-pipeline-file" << endl;
@@ -60,10 +71,13 @@ static void help() {
   cout << "    Start logging at TRACE log level" << endl;
   cout << " -warn " << endl;
   cout << "    Start logging at WARN log level" << endl;
+  cout << " -version " << endl;
+  cout << "    Print out FireSight version" << endl;
 }
 
 bool parseArgs(int argc, char *argv[], 
-  string &pipelinePath, char *&imagePath, char * &outputPath, UIMode &uimode, ArgMap &argMap, bool &isTime, int &jsonIndent) 
+  string &pipelinePath, char *&imagePath, char * &outputPath, UIMode &uimode, 
+  ArgMap &argMap, bool &isTime, JSONSerializer& serializer=defaultSerializer)
 {
   uimode = UI_STILL;
   isTime = false;
@@ -86,13 +100,25 @@ bool parseArgs(int argc, char *argv[],
       }
       pipelinePath = argv[++i];
       LOGTRACE1("parseArgs(-p) \"%s\" is JSON pipeline path", pipelinePath.c_str());
+    } else if (strcmp("-jp",argv[i]) == 0) {
+      if (i+1>=argc) {
+        LOGERROR("expected JSON precision after -jp");
+        exit(-1);
+      }
+      int jsonPrecision = atoi(argv[++i]);
+	  if (jsonPrecision < 0) {
+	  	LOGERROR1("invalid JSON precision: %d", jsonPrecision);
+	  }
+      LOGTRACE1("parseArgs(-jp) JSON precision:%d", jsonPrecision);
+	  serializer.setPrecision(jsonPrecision);
     } else if (strcmp("-ji",argv[i]) == 0) {
       if (i+1>=argc) {
         LOGERROR("expected JSON indent after -ji");
         exit(-1);
       }
-      jsonIndent = atoi(argv[++i]);
+      int jsonIndent = atoi(argv[++i]);
       LOGTRACE1("parseArgs(-ji) JSON indent:%d", jsonIndent);
+	  serializer.setIndent(jsonIndent);
     } else if (strcmp("-o",argv[i]) == 0) {
       if (i+1>=argc) {
         LOGERROR("expected output path after -o");
@@ -100,6 +126,9 @@ bool parseArgs(int argc, char *argv[],
       }
       outputPath = argv[++i];
       LOGTRACE1("parseArgs(-o) \"%s\" is output image path", outputPath);
+    } else if (strcmp("-version",argv[i]) == 0) {
+	  cout << "{\"version\":\"" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << "\"}" << endl;
+	  exit(0);
     } else if (strcmp("-time",argv[i]) == 0) {
       isTime = true;
     } else if (strncmp("-D",argv[i],2) == 0) {
@@ -145,10 +174,14 @@ bool parseArgs(int argc, char *argv[],
 /**
  * Single image example of FireSight lib_firesight library use
  */
-static int uiStill(const char * pipelinePath, Mat &image, ArgMap &argMap, bool isTime, int jsonIndent) {
+static int uiStill(const char * pipelinePath, Mat &image, ArgMap &argMap, bool isTime, 
+	JSONSerializer& serializer=defaultSerializer) {
   Pipeline pipeline(pipelinePath, Pipeline::PATH);
-  
-  json_t *pModel = pipeline.process(image, argMap);
+  pipeline.setSerializer(serializer);
+
+  Input * input = (Input *) new ImageInput(image);
+
+  json_t *pModel = pipeline.process(input, argMap, image);
 
   if (isTime) {
     long long tickStart = cvGetTickCount();
@@ -157,7 +190,7 @@ static int uiStill(const char * pipelinePath, Mat &image, ArgMap &argMap, bool i
     int iterations = 100;
     for (int i=0; i < iterations; i++) {
       json_decref(pModel);
-      pModel = pipeline.process(image, argMap);
+      pModel = pipeline.process(input, argMap, image);
     }
     float ticksElapsed = cvGetTickCount() - tickStart;
     //cout << "ticksElapsed:" << ticksElapsed << endl;
@@ -169,9 +202,7 @@ static int uiStill(const char * pipelinePath, Mat &image, ArgMap &argMap, bool i
   }
 
   // Print out returned model 
-  char *pModelStr = json_dumps(pModel, JSON_PRESERVE_ORDER|JSON_COMPACT|JSON_INDENT(jsonIndent));
-  cout << pModelStr << endl;
-  free(pModelStr);
+  cout << serializer.serialize(pModel) << endl;
 
   // Free model
   json_decref(pModel);
@@ -182,22 +213,18 @@ static int uiStill(const char * pipelinePath, Mat &image, ArgMap &argMap, bool i
 /**
  * Video capture example of FireSight lib_firesight library use
  */
-static int uiVideo(const char * pipelinePath, ArgMap &argMap) {
-  VideoCapture cap(0); // open the default camera
-  if(!cap.isOpened()) {  // check if we succeeded
-    LOGERROR("Could not open camera");
-    exit(-1);
-  }
+static int uiVideo(const char * pipelinePath, ArgMap &argMap, 
+	JSONSerializer& serializer=defaultSerializer) {
+  Input * input = (Input *) new VideoInput();
 
   namedWindow("image",1);
 
   Pipeline pipeline(pipelinePath, Pipeline::PATH);
+  pipeline.setSerializer(serializer);
 
   for(;;) {
     Mat frame;
-    cap >> frame; // get a new frame from camera
-
-    json_t *pModel = pipeline.process(frame, argMap);
+    json_t *pModel = pipeline.process(input, argMap, frame, false);
 
     // Display pipeline output
     imshow("image", frame);
@@ -218,8 +245,8 @@ int main(int argc, char *argv[])
   char * outputPath = NULL;
   ArgMap argMap;
   bool isTime;
-  int jsonIndent = 2;
-  bool argsOk = parseArgs(argc, argv, pipelinePath, imagePath, outputPath, uimode, argMap, isTime, jsonIndent);
+  bool argsOk = parseArgs(argc, argv, pipelinePath, imagePath, outputPath, uimode, 
+ 	 argMap, isTime, defaultSerializer);
   if (!argsOk) {
     help();
     exit(-1);
@@ -239,10 +266,10 @@ int main(int argc, char *argv[])
 
   switch (uimode) {
     case UI_STILL: 
-      uiStill(pipelinePath.c_str(), image, argMap, isTime, jsonIndent);
+      uiStill(pipelinePath.c_str(), image, argMap, isTime, defaultSerializer);
       break;
     case UI_VIDEO: 
-      uiVideo(pipelinePath.c_str(), argMap); 
+      uiVideo(pipelinePath.c_str(), argMap, defaultSerializer); 
       break;
     default: 
       LOGERROR("Unknown UI mode");
