@@ -42,8 +42,7 @@ script:
   # All we need to do is download the zip from our gh-deploy page and move the files as needed.
   - mkdir opencv
   - cd opencv
-  - wget https://github.com/firepick-delta/opencv/releases/download/untagged-3da613e84fbfe3b0015b/opencv.zip
-  #- wget https://github.com/firepick-delta/opencv/releases/download/mingw-w64/opencv.zip
+  - wget https://github.com/firepick-delta/opencv/releases/download/mingw-w64/opencv.zip
   - unzip opencv.zip
   # need to move files around to get them in the proper spot for firesight to build...
   - cp -r include/* ../include
