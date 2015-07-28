@@ -17,14 +17,19 @@ IF(WIN32)
   IF(NOT DEFINED CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS)
     SET(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
   ENDIF()
-  SET(JANSSON_DIR "${CMAKE_SOURCE_DIR}/jansson/msvc" CACHE STRING "Jansson directory") 
+  SET(JANSSON_DIR "${CMAKE_SOURCE_DIR}/jansson/mingw" CACHE STRING "Jansson directory") 
   SET(JANSSON_INCLUDE_DIRS "${JANSSON_DIR}/include")
-  SET(JANSSON_LIB "${JANSSON_DIR}/lib/Debug/jansson_d.lib")
-  SET(JANSSON_DLL "${JANSSON_DIR}/bin/Debug/jansson_d.dll")
+  SET(JANSSON_LIB "${JANSSON_DIR}/lib/libjansson.dll.a")
+  SET(JANSSON_DLL "${JANSSON_DIR}/bin/libjansson.dll")
   MESSAGE(STATUS "JANSSON_DLL:${JANSSON_DLL}")
   MESSAGE(STATUS "JANSSON_LIB:${JANSSON_LIB}")
   SET(FIRESIGHT_LIB "_firesight.lib")
   SET(FIRESIGHT_DLL "_firesight.dll")
+  SET(ZBAR_DIR "C:/ZBar/" CACHE STRING "ZBAR_DIRECTORY")
+  SET(ZBAR_DLL "${ZBAR_DIR}/BIN/libzbar-0.dll" CACHE STRING "ZBAR_DLL")
+  SET(ZBAR_LIB "${ZBAR_DIR}/lib/libzbar.dll.a" CACHE STRING "ZBAR_LIB")
+  SET(ZBAR_LIBRARIES "${ZBAR_LIB}")
+  SET(ZBAR_INCLUDE_DIR "${ZBAR_DIR}/include" CACHE STRING "ZBAR_INCLUDE_DIR")
 ELSE(WIN32)
   MESSAGE(STATUS "Detecting LINUX build")
   SET(JANSSON_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/jannson/src/")
@@ -51,8 +56,12 @@ SET(RUNTIME_OUTPUT_NAME firesight)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories( ${PROJECT_SOURCE_DIR} ${BUILD_TARGET_DIR} ${BUILD_TARGET_DIR}/include ${JANSSON_INCLUDE_DIRS} )
-include_directories( /usr/local/include )
-include_directories( /usr/include )
+IF(WIN32)
+	include_directories( ${ZBAR_INCLUDE_DIR} )
+ELSE(WIN32)
+	include_directories( /usr/local/include )
+	include_directories( /usr/include )
+ENDIF(WIN32)
 
 include (InstallRequiredSystemLibraries)
 SET(CPACK_RESOURCE_FILE_LICENSE  
@@ -77,13 +86,17 @@ find_package( OpenCV REQUIRED )
 if (OpenCV_LIBS) 
   MESSAGE(STATUS "OpenCV_LIBS:${OpenCV_LIBS}")
 else(OpenCV_LIBS)
+  MESSAGE(STATUS "OpenCV_LIBS:${OpenCV_LIBS}")
   MESSAGE("find_package(OpenCV) failed => OpenCV_LIBS is not defined")
 endif(OpenCV_LIBS)
 
 message("CMAKE_PREFIX_PATH:${CMAKE_PREFIX_PATH}")
 
-link_directories( ${BUILD_TARGET_DIR} ${BUILD_TARGET_DIR}/lib /usr/lib /usr/local/lib )
-
+IF(WIN32)
+	link_directories( ${BUILD_TARGET_DIR} ${BUILD_TARGET_DIR}/lib )
+ELSE(WIN32)
+	link_directories( ${BUILD_TARGET_DIR} ${BUILD_TARGET_DIR}/lib /usr/lib /usr/local/lib )
+ENDIF(WIN32)
 
 # files
 set(STAGE_FILES
@@ -121,6 +134,12 @@ if(BUILD_LGPL2_1)
     )
 endif(BUILD_LGPL2_1)
 
+MESSAGE(STATUS "FireSight Lib Files:${FIRESIGHT_LIB_FILES}")
+
+
+###############################################################################
+# _FireSight Library
+###############################################################################
 add_library(_firesight SHARED ${FIRESIGHT_LIB_FILES})
 target_link_libraries(_firesight ${JANSSON_LIB} ${OpenCV_LIBS} )
 set_target_properties(_firesight PROPERTIES 
@@ -135,23 +154,21 @@ if(WIN32)
   add_custom_command(TARGET _firesight PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${JANSSON_LIB}"      
-        "${PROJECT_SOURCE_DIR}/target/Debug/" 
+        "${BUILD_TARGET_DIR}" 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${JANSSON_DLL}"      
-        "${PROJECT_SOURCE_DIR}/target/" 
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${JANSSON_DLL}"      
-        "${PROJECT_SOURCE_DIR}/target/Debug/" 
-    )
-  add_custom_command(TARGET _firesight POST_BUILD    
-    COMMAND cd ${PROJECT_SOURCE_DIR}/target/Debug
-    COMMAND copy ${FIRESIGHT_DLL} ..
-    COMMAND copy ${FIRESIGHT_DLL} ..
-    COMMAND cd ${PROJECT_SOURCE_DIR}/msvc
+        "${BUILD_TARGET_DIR}" 
     )
 endif(WIN32)
   
+###############################################################################
+# GenCode Executable (code generator for ring mat)
+###############################################################################
 add_executable(gencode gencode.cpp)
+
+###############################################################################
+# FireSight Executable
+###############################################################################
 
 add_executable(firesight FireSight.cpp)
 add_dependencies(firesight _firesight)
@@ -160,18 +177,21 @@ if(BUILD_LGPL2_1)
     target_link_libraries(firesight ${ZBAR_LIBRARIES})
     set_target_properties(firesight PROPERTIES COMPILE_FLAGS -DLGPL2_1)
 endif(BUILD_LGPL2_1)
-if(WIN32)
-  add_custom_command(TARGET firesight POST_BUILD    
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${PROJECT_SOURCE_DIR}/target/Debug/firesight.exe"      
-        "${PROJECT_SOURCE_DIR}/target/firesight.exe" 
-        )
-endif(WIN32)
+#if(WIN32)
+#  add_custom_command(TARGET firesight POST_BUILD    
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+#        "${PROJECT_SOURCE_DIR}/target/Debug/firesight.exe"      
+#        "${PROJECT_SOURCE_DIR}/target/firesight.exe" 
+#        )
+#endif(WIN32)
 
+###############################################################################
+# FireSight Tests
+###############################################################################
 add_executable(firesightgui FireSightGui.cpp)
 target_link_libraries(firesightgui ${JANSSON_LIB} ${FIRESIGHT_LIB} ${OpenCV_LIBS})
 
-add_executable(test 
+add_executable(test
   test/test_calibrate.cpp
   test/test_warpAffine.cpp 
   test/test_warpRing.cpp 
@@ -183,19 +203,35 @@ add_executable(test
 add_dependencies(test _firesight)
 target_link_libraries(test ${JANSSON_LIB} ${FIRESIGHT_LIB} ${OpenCV_LIBS})
 if(BUILD_LGPL2_1)
-    target_link_libraries(test ${ZBAR_LIBRARIES})
+    target_link_libraries(test ${ZBAR_LIB})
     set_target_properties(test PROPERTIES COMPILE_FLAGS -DLGPL2_1)
 endif(BUILD_LGPL2_1)
-if(WIN32)
-  add_custom_command(TARGET test POST_BUILD    
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${PROJECT_SOURCE_DIR}/target/Debug/test.exe"      
-        "${PROJECT_SOURCE_DIR}/target/test.exe" 
-        )
-endif(WIN32)
+#if(WIN32)
+#  add_custom_command(TARGET test POST_BUILD    
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+#        "${PROJECT_SOURCE_DIR}/target/Debug/test.exe"      
+#        "${PROJECT_SOURCE_DIR}/target/test.exe" 
+#        )
+#endif(WIN32)
 #
 # Installation preparation.
 #
+
+#Copy ZBar Windows DLL over to target dir
+if(BUILD_LGPL2_1)
+if(WIN32)
+  add_custom_command(TARGET firesight POST_BUILD    
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${ZBAR_DLL}"      
+        "${BUILD_TARGET_DIR}" 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  
+        "${ZBAR_LIB}"      
+        "${BUILD_TARGET_DIR}" 
+        )
+
+endif(WIN32)
+endif(BUILD_LGPL2_1)
+
 
 # Allow the user to override installation directories.
 set(FIRESIGHT_INSTALL_LIB_DIR       lib CACHE PATH "Installation directory for libraries")
