@@ -81,6 +81,6 @@ deploy:
     secure: fzrH2xXzBfBlC/lalSV/VAqubCTbsSh6lmmERUMio1yzSxrIvmUTw3k+uAt7NXY5hvnoALbGrnAgKYmYikGqsc+3TSKF/EXiVGexltY3iYQgTip39j1CPlcikt3AmhyJ/u8Ll9ovoSkbCjP3V6j1dFcYDIE5nCHirgvQtO1KvLg=
   file: firesight.zip
   on:
-    tags: true
+#    tags: true
     repo: firepick-delta/FireSight
     all_branches: true
