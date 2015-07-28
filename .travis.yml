@@ -1,0 +1,86 @@
+###############################################################################
+# OpenCV fork for FirePick Delta / FireSight - Currently performs windows cross-compile and auto-deploys.
+###############################################################################
+# .travis.yml script by Neil Jansen / njansen1@gmail.com with cross-compiling help from Armin van der Togt and others.
+# 2015-02-05: Initial commit
+
+language: cpp
+compiler:
+  - gcc
+install:
+  - sudo apt-get update -y
+  - sudo apt-get install -y gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
+  - sudo apt-get install -y cmake
+script:
+  - cmake --version
+  - mkdir target
+  - cd target
+  - mkdir include
+  - mkdir lib
+  - mkdir bin
+
+  ###############################################################################
+  # Dependency: Jansson
+  ###############################################################################
+  # Note that we can't sudo 'apt-get install -y -qq libjansson4
+  # because we're cross-compiling and we need to build the libs from source.
+  # But rather than build from source, we'll use our firepick-delta fork with its own travis-CI and deployment, which as a .zip'd source file.
+  - mkdir jansson
+  - cd jansson
+  - wget https://github.com/firepick-delta/jansson/releases/download/mingw-w64/jansson.zip
+  - unzip jansson.zip
+  # need to move files around to get them in the proper spot for firesight to build...
+  - cp -r include/* ../include
+  - cp -r bin/* ../bin
+  - cp -r lib/* ../lib
+  - cd ..
+
+  ###############################################################################
+  # Dependency: OpenCV
+  ###############################################################################
+  # Note that the whole git repo is pretty goddamn huge, we have chosen to host our own opencv fork and put our built versions there.  
+  # All we need to do is download the zip from our gh-deploy page and move the files as needed.
+  - mkdir opencv
+  - cd opencv
+  - wget https://github.com/firepick-delta/opencv/releases/download/mingw-w64/opencv.zip
+  - unzip opencv.zip
+  # need to move files around to get them in the proper spot for firesight to build...
+  - cp -r include/* ../include
+  - cp -r x64/mingw/bin/* ../bin
+  - cp -r x64/mingw/lib/* ../lib
+  - cd ..
+
+  ###############################################################################a
+  # Build FireSight
+  ###############################################################################
+  # should be in firesight/target dir
+  - cmake .. -DCMAKE_TOOLCHAIN_FILE="../mingw-w64.cmake" -DCMAKE_VERBOSE_MAKEFILE:BOOL="1"
+  - ls
+  - make
+  - make install
+  - ls
+
+  # back to firesight/ dir
+  - cd ..
+
+before_deploy:
+  - cd install
+  # Need to add these dependencies for Windows:
+  - cp ../winjunk/libwinpthread-1.dll ./bin
+  - cp ../winjunk/libstdc++-6.dll ./bin
+  - cp ../winjunk/libgcc_s_sjlj-1.dll ./bin
+  # for some reason, the lib_firesight.dll is getting copied into /lib instead of /bin.. 
+  # TODO: this is an ugly hack that should be fixed when time allows.
+  - mv lib/lib_firesight.dll bin/lib_firesight.dll
+  - zip ../firesight.zip -r .
+  - cd ..
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: fzrH2xXzBfBlC/lalSV/VAqubCTbsSh6lmmERUMio1yzSxrIvmUTw3k+uAt7NXY5hvnoALbGrnAgKYmYikGqsc+3TSKF/EXiVGexltY3iYQgTip39j1CPlcikt3AmhyJ/u8Ll9ovoSkbCjP3V6j1dFcYDIE5nCHirgvQtO1KvLg=
+  file: firesight.zip
+  on:
+    tags: true
+    repo: firepick-delta/FireSight
+    all_branches: true
